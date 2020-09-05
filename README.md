@@ -1,4 +1,5 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
+[![Join the chat at https://gitter.im/efiXplorer/dev](https://badges.gitter.im/efiXplorer/efiXplorer.svg)](https://gitter.im/efiXplorer/dev?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 **efiXplorer** - IDA plugin for UEFI firmware analysis and reverse engineering automation :octocat:
 
@@ -29,6 +30,12 @@ Annotate assembly code automatically with available Boot Services
 Annotate assembly code automatically with available Runtime Services
 
 ![rt2](img/rt2.png)
+
+## Identify available SMM Services automatically
+
+| Before analysis | After analysis |
+| --- | --- |
+| ![smm_before](img/smm_before.png) | ![smm_after](img/smm_after.png) |
 
 ## Identify available EFI Protocols automatically
 
@@ -71,6 +78,9 @@ example of build process:
 # Installation
 
 Copy compiled binaries of efiXplorer plugin and `guids` directory to `<IDA_DIR>/plugins`. Enjoy!
+
+# Publications
+* [How efiXplorer helping to solve challenges in reverse engineering of UEFI firmware](https://www.youtube.com/watch?v=FFGQJBmRkLw)
 
 # References 
 __For IDA:__

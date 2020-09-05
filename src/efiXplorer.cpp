@@ -50,7 +50,11 @@ static const char welcome_msg[] =
 
 //--------------------------------------------------------------------------
 // Initialize
+#if IDA_SDK_VERSION == 740
+int idaapi init(void) {
+#else
 plugmod_t *idaapi init(void) {
+#endif
     msg(welcome_msg);
     msg("%s\n\n", COPYRIGHT);
     inited = true;
@@ -64,7 +68,16 @@ bool idaapi run(size_t) {
     DEBUG_MSG("[%s] ========================================================\n",
               plugin_name);
     DEBUG_MSG("[%s] plugin run\n", plugin_name);
-    uint8_t arch = getFileType();
+    bool guidsJsonOk = guidsJsonExists();
+    DEBUG_MSG("[%s] guids.json exists: %s\n", plugin_name, BTOA(guidsJsonOk));
+    if (!guidsJsonOk) {
+        string msg_text = "guids.json file not found, copy \"guids\" directory "
+                          "to <IDA_DIR>/plugins";
+        DEBUG_MSG("[%s] %s\n", plugin_name, msg_text.c_str());
+        warning("%s: %s\n", plugin_name, msg_text.c_str());
+        return false;
+    }
+    uint8_t arch = getArch();
     if (arch == X64) {
         DEBUG_MSG("[%s] input file is portable executable for AMD64 (PE)\n",
                   plugin_name);
