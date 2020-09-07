@@ -125,7 +125,7 @@ using namespace std::filesystem;
  * (X64 or X86) */
 uint8_t getArch();
 /* Get input file type
-* (PEI or DXE-like) */
+ * (PEI or DXE-like) */
 uint8_t getFileType();
 /* Set EFI_GUID type */
 void setGuidType(ea_t ea);
