@@ -308,7 +308,7 @@ segment_t *efiloader::PE::make_generic_segment(ea_t seg_ea, ea_t seg_ea_end,
 
 int efiloader::PE::preprocess_sections() {
     qlseek(li, _pe_header_off);
-    qlread(li, &pe, sizeof(peheader_t) + sizeof(uint32_t));
+    qlread(li, &pe, sizeof(peheader_t));
 
     // x86
     number_of_sections = pe.nobjs;
@@ -317,7 +317,7 @@ int efiloader::PE::preprocess_sections() {
 
     if (pe.machine == PECPU_AMD64) { // x64
         qlseek(li, _pe_header_off);
-        qlread(li, &pe64, sizeof(peheader64_t) + sizeof(uint32_t));
+        qlread(li, &pe64, sizeof(peheader64_t));
         number_of_sections = pe64.nobjs;
         section_headers_offset = pe64.first_section_pos(_pe_header_off);
         headers_size = pe64.allhdrsize;
