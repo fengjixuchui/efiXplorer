@@ -9,7 +9,7 @@
  *                  |_|
  *
  * efiXplorer
- * Copyright (C) 2020  Binarly
+ * Copyright (C) 2020-2021  Binarly
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 
 #include "efiXplorer.h"
 #include "efiAnalysis.h"
+#include "efiPluginArgs.h"
 
 #define GRAPH_DEBUG 0
 
@@ -49,6 +50,58 @@ static const char welcome_msg[] =
     "  \\___|_| |_/_/ \\_\\ .__/|_|\\___/|_|  \\___|_|\n"
     "                  | |\n"
     "                  |_|\n";
+
+// default arguments
+struct args g_args = {/* disable_ui */ 0, /* disable_vuln_hunt */ 0};
+
+#if BATCH
+
+//--------------------------------------------------------------------------
+plugmod_t *idaapi init(void) {
+    msg(welcome_msg);
+    msg("%s\n\n", COPYRIGHT);
+    inited = true;
+    return PLUGIN_KEEP;
+}
+
+//--------------------------------------------------------------------------
+bool idaapi run(size_t) {
+    DEBUG_MSG("[%s] ========================================================\n",
+              plugin_name);
+    g_args.disable_ui = 1;
+    g_args.disable_vuln_hunt = 1;
+    DEBUG_MSG("[%s] plugin run\n", plugin_name);
+    DEBUG_MSG("[%s] disable_ui = %d, disable_vuln_hunt = %d\n", plugin_name,
+              g_args.disable_ui, g_args.disable_vuln_hunt);
+    uint8_t arch = getArch();
+    if (arch == X64) {
+        DEBUG_MSG("[%s] input file is portable executable for AMD64 (PE)\n",
+                  plugin_name);
+        efiAnalysis::efiAnalyzerMainX64();
+    }
+    if (arch == X86) {
+        DEBUG_MSG("[%s] input file is portable executable for 80386 (PE)\n",
+                  plugin_name);
+        efiAnalysis::efiAnalyzerMainX86();
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------
+// PLUGIN DESCRIPTION BLOCK
+plugin_t PLUGIN = {
+    IDP_INTERFACE_VERSION,
+    0,              // plugin flags
+    init,           // initialize plugin
+    nullptr,        // terminate plugin
+    run,            // invoke plugin
+    plugin_comment, // long comment about the plugin
+    plugin_help,    // multiline help about the plugin
+    plugin_name,    // the preferred short name of the plugin
+    plugin_hotkey   // the preferred hotkey to run the plugin
+};
+
+#else
 
 vector<json> depJson;
 vector<string> depNodes;
@@ -397,11 +450,23 @@ static plugmod_t *idaapi init() {
 
 //--------------------------------------------------------------------------
 static const char wanted_title[] = "efiXplorer: dependency graph";
-bool idaapi plugin_ctx_t::run(size_t) {
-    /* analyzer staff start */
+bool idaapi plugin_ctx_t::run(size_t arg) {
     DEBUG_MSG("[%s] ========================================================\n",
               plugin_name);
-    DEBUG_MSG("[%s] plugin run\n", plugin_name);
+    // parse arguments
+    // arg = 0 (00): default
+    // arg = 1 (01): disable_ui
+    // arg = 2 (10): disable_vuln_hunt
+    // arg = 3 (11): disable_ui & disable_vuln_hunt
+    if (arg >> 0 & 1) {
+        g_args.disable_ui = 1;
+    }
+    if (arg >> 1 & 1) {
+        g_args.disable_vuln_hunt = 1;
+    }
+    DEBUG_MSG("[%s] plugin run with argument %d\n", plugin_name, arg);
+    DEBUG_MSG("[%s] disable_ui = %d, disable_vuln_hunt = %d\n", plugin_name,
+              g_args.disable_ui, g_args.disable_vuln_hunt);
     bool guidsJsonOk = guidsJsonExists();
     DEBUG_MSG("[%s] guids.json exists: %s\n", plugin_name, BTOA(guidsJsonOk));
     if (!guidsJsonOk) {
@@ -456,6 +521,8 @@ bool idaapi plugin_ctx_t::run(size_t) {
         depNodes.clear();
         depEdges.clear();
     }
+    /* reset arguments */
+    g_args = {/* disable_ui */ 0, /* disable_vuln_hunt */ 0};
     return true;
 }
 
@@ -472,3 +539,5 @@ plugin_t PLUGIN = {
     plugin_name,    // the preferred short name of the plugin
     plugin_hotkey   // the preferred hotkey to run the plugin
 };
+
+#endif
